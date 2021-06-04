@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>EasyXnb</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net461</TargetFramework>
+    <Prefer32Bit>True</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>7.3</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>xnbcompiler</RootNamespace>
+    <ApplicationIcon>xnb.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Properties\**" />
+    <EmbeddedResource Remove="Properties\**" />
+    <None Remove="Properties\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove=".gitattributes" />
+    <None Remove=".gitignore" />
+    <None Remove="Microsoft.Xna.Framework.Content.Pipeline.dll" />
+    <None Remove="Microsoft.Xna.Framework.Content.Pipeline.EffectImporter.dll" />
+    <None Remove="Microsoft.Xna.Framework.Content.Pipeline.FBXImporter.dll" />
+    <None Remove="Microsoft.Xna.Framework.Content.Pipeline.TextureImporter.dll" />
+    <None Remove="README.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework">
+      <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline">
+      <HintPath>Microsoft.Xna.Framework.Content.Pipeline.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.EffectImporter">
+      <HintPath>Microsoft.Xna.Framework.Content.Pipeline.EffectImporter.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.FbxImporter">
+      <HintPath>Microsoft.Xna.Framework.Content.Pipeline.FBXImporter.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.TextureImporter">
+      <HintPath>Microsoft.Xna.Framework.Content.Pipeline.TextureImporter.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Game">
+      <HintPath>C:\Windows\Microsoft.NET\assembly\GAC_32\Microsoft.Xna.Framework.Game\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Game.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Graphics">
+      <HintPath>..\..\..\..\Documents\antimicro\References\Windows\x86\Microsoft.Xna.Framework.Graphics.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,63 @@
+using Terraria.ModLoader;
+using System;
+using Terraria;
+using System.Reflection;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content;
+using System.IO;
+
+namespace ExmplMod
+{
+	public class ExmplMod : Mod
+	{
+		public Model exmplSimpleModel;
+		public Model exmplModel;
+
+		public MethodInfo create_ContentReader;
+		public MethodInfo readAsset;
+		public MethodInfo readAssetExact;
+
+		public override void Load()
+        {
+			create_ContentReader = typeof(ContentReader).GetMethod("Create", BindingFlags.NonPublic | BindingFlags.Static);
+
+			readAsset = typeof(ContentReader).GetMethod("ReadAsset", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(typeof(object));
+			
+			//quick info
+			//MemoryStream streams from memory
+			//FileStream streams from disk
+			//Both extend from stream
+			//Here we are swapping out a filestream for a memorystream
+
+			//model type is 'Model' material type is 'BasicEffect'
+			exmplSimpleModel = LoadAsset<Model>("ExmplMod/Models/UntexturedSphere.xnc");//untextured model
+			
+			exmplModel = LoadAsset<Model>("ExmplMod/Models/Sans.xnc");//models are not saved with textures, so you will have to set each material's texture
+			exmplModel.SetTexture(ModContent.GetTexture("ExmplMod/Models/Sans Tex"));//this is just a helper method that sets the texture of every material to the same texture
+		}
+
+		public T LoadAsset<T>(string path) => 
+			LoadAsset<T>(new MemoryStream(ModContent.GetFileBytes(path)));
+
+		public T LoadAsset<T>(Stream stream)
+        {
+			using (ContentReader contentReader = (ContentReader)create_ContentReader.Invoke(null, new object[] { Main.ShaderContentManager, stream, "", null }))
+				return (T)readAsset.Invoke(contentReader, null);
+		}
+	}
+
+	public static class ExmplExtensions
+    {
+		public static void SetTexture(this Model model, Texture2D texture)
+        {
+			foreach (ModelMesh mesh in model.Meshes)
+			{
+				foreach (BasicEffect effect in mesh.Effects)
+				{
+					effect.TextureEnabled = true;
+					effect.Texture = texture;
+				}
+			}
+		}
+	}
