@@ -6,22 +6,23 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System.IO;
+using System.Collections.Generic;
 
 namespace ExmplMod
 {
-	public class ExmplMod : Mod
+	public static class ContentHandler
 	{
-		public Model exmplSimpleModel;
-		public Model exmplModel;
+		private static MethodInfo create_ContentReader;
+		private static MethodInfo readAsset;
 
-		public MethodInfo create_ContentReader;
-		public MethodInfo readAsset;
-		public MethodInfo readAssetExact;
+		public static string extension;
 
-		public override void Load()
+		public static Dictionary<string, object> assetCache = new Dictionary<string, object>();
+
+		public static void Load(string xnbExtension = ".xnc")
         {
+			extension = xnbExtension;
 			create_ContentReader = typeof(ContentReader).GetMethod("Create", BindingFlags.NonPublic | BindingFlags.Static);
-
 			readAsset = typeof(ContentReader).GetMethod("ReadAsset", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(typeof(object));
 			
 			//quick info
@@ -31,17 +32,54 @@ namespace ExmplMod
 			//Here we are swapping out a filestream for a memorystream
 
 			//model type is 'Model' material type is 'BasicEffect'
-			exmplSimpleModel = LoadAsset<Model>("ExmplMod/Models/UntexturedSphere.xnc");//untextured model
+			exmplSimpleModel = GetModel("ExmplMod/Models/UntexturedSphere");//untextured model
 			
-			exmplModel = LoadAsset<Model>("ExmplMod/Models/Sans.xnc");//models are not saved with textures, so you will have to set each material's texture
+			exmplModel = GetModel("ExmplMod/Models/Sans");//models are not saved with textures, so you will have to set each material's texture
 			exmplModel.SetTexture(ModContent.GetTexture("ExmplMod/Models/Sans Tex"));//this is just a helper method that sets the texture of every material to the same texture
+			
+			Texture2D extraTex = GetXnaTexture("ExmplMod/textures/VeryLargeTexture");//this is how you load compiled textures, useful for loading jpgs
 		}
 
-		public T LoadAsset<T>(string path) => 
+		public static Model GetModel(string path) =>
+			GetAsset<Model>(path);
+
+		public static BasicEffect GetMaterial(string path) =>
+			GetAsset<BasicEffect>(path);
+
+		//Called this to match `ModContent.GetModTexture(str path)`
+		public static Texture2D GetXnaTexture(string path) =>
+			GetAsset<Texture2D>(path);
+
+		//caches gotten assets
+		public static T GetAsset<T>(string path)
+		{
+			if (assetCache.ContainsKey(path))
+				return (T)assetCache[path];
+			else
+			{
+				T asset = LoadAsset<T>(path + extension);
+				assetCache.Add(path, asset);
+				return asset;
+			}
+		}
+
+		/// <summary>
+		/// Reads asset from disk, Use GetAsset instead to get from cache if asset has already been read.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="path">includes extension</param>
+		/// <returns></returns>
+		public static T LoadAsset<T>(string path) =>
 			LoadAsset<T>(new MemoryStream(ModContent.GetFileBytes(path)));
 
-		public T LoadAsset<T>(Stream stream)
-        {
+		/// <summary>
+		/// Reads asset from disk, Use GetAsset instead to get from cache if asset has already been read.
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="stream"></param>
+		/// <returns></returns>
+		public static T LoadAsset<T>(Stream stream)
+		{
 			using (ContentReader contentReader = (ContentReader)create_ContentReader.Invoke(null, new object[] { Main.ShaderContentManager, stream, "", null }))
 				return (T)readAsset.Invoke(contentReader, null);
 		}
@@ -59,5 +97,20 @@ namespace ExmplMod
 					effect.Texture = texture;
 				}
 			}
+		}
+
+		public static void IterateEffect(this Model model, Action<Effect> method)
+        {
+			foreach (ModelMesh mesh in model.Meshes)
+				foreach (Effect effect in mesh.Effects)
+					method(effect);
+		}
+
+		public static void SetEffect(this Model model, Effect effect)
+        {
+			foreach (ModelMesh mesh in model.Meshes)
+				foreach (ModelMeshPart part in mesh.MeshParts)
+					part.Effect = effect;
+
 		}
 	}
