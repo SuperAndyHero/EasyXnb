@@ -13,6 +13,18 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Configuration;
 using System.Collections.Specialized;
 
+//untested:
+//texture loading in-game
+//font compiling
+//compressed output
+//if profile setting has any effect
+
+//possible future additions:
+//build textures coming from models like materials are built
+//build animations coming from models
+
+
+
 namespace DynamicFontGenerator
 {
 	public sealed class GeneratorGame : Game
@@ -61,12 +73,6 @@ namespace DynamicFontGenerator
 		public readonly Assembly FBX_PipeLineAssembly;//new
 		public readonly Assembly Texture_PipeLineAssembly;//new
 
-		//untested:
-		//texture loading in-game
-		//font compiling
-		//compressed output
-		//if profile setting has any effect
-
 		//settings
 		public readonly bool compileFontsSetting;//false
 		public readonly bool compileMaterialsSeperateSetting;//false
@@ -76,10 +82,14 @@ namespace DynamicFontGenerator
 		//removed platform setting because the only options are windows, windows phone, and xbox 360
 		public readonly GraphicsProfile profileSetting; //GraphicsProfile.Reach
 		public readonly bool compressOutputSetting;//false
+		public readonly bool rebuildAllSetting;//true //Default value changed from original xnb generator (this was the source of all bugs and the root of all evil)
 		public static string inputDirectorySetting;// Environment.CurrentDirectory
 		public static string intermedDirectorySetting;// Environment.CurrentDirectory
 		public static string outputDirectorySetting;// Environment.CurrentDirectory
-		public readonly bool rebuildAllSetting;//true //Default value changed from original xnb generator (this was the source of all bugs and the root of all evil)
+
+		private readonly float modelScale;//false
+		private readonly bool modelSwapWindingOrder;//false
+		private readonly bool modelGenerateTangentFrames;//false
 
 		private readonly string effectExtension;
 		private readonly string fontExtension;
@@ -108,6 +118,10 @@ namespace DynamicFontGenerator
 			outputDirectorySetting = (outDir == "default" ? Environment.CurrentDirectory : outDir);
 
 			rebuildAllSetting = bool.Parse(ConfigurationManager.AppSettings.Get("RebuildAll"));
+
+			modelScale = float.Parse(ConfigurationManager.AppSettings.Get("ModelScale"));
+			modelSwapWindingOrder = bool.Parse(ConfigurationManager.AppSettings.Get("ModelSwapWindingOrder"));
+			modelGenerateTangentFrames = bool.Parse(ConfigurationManager.AppSettings.Get("ModelGenerateTangentFrames"));
 
 			effectExtension = ConfigurationManager.AppSettings.Get("EffectExtension");
 			fontExtension = ConfigurationManager.AppSettings.Get("FontExtension");
@@ -177,13 +191,31 @@ namespace DynamicFontGenerator
 				_effectProcessor = new EffectProcessor();
 
 			_contentImporter_Node = (ContentImporter<NodeContent>)Activator.CreateInstance(FBX_PipeLineAssembly.GetType("Microsoft.Xna.Framework.Content.Pipeline.FbxImporter"));
-				_modelProcessor = new ModelProcessor();
-				if(compileMaterialsSeperateSetting) _materialProcessor = new MaterialProcessor();
+				_modelProcessor = new ModelProcessor
+				{//all comments are the default values
+					//GenerateMipmaps = true	//unsure of use: (if this generates a texture its likely this is lost, maybe check the processed textures for a difference?)
+					//DefaultEffect = MaterialProcessorDefaultEffect.BasicEffect //Any built in xna effect
+					//PremultiplyVertexColors = true
+					//PremultiplyTextureAlpha = true
+					//ResizeTexturesToPowerOfTwo = true //output likely lost
+					//ColorKeyColor = new Color(255, 0, 255, 255)
+					//ColorKeyEnabled = true
+					//TextureFormat = TextureProcessorOutputFormat.DxtCompressed //output likely lost
+					//RotationZ = 0f
+					//RotationY = 0f
+					//RotationX = 0f
+					Scale = modelScale, //1f
+					SwapWindingOrder = modelSwapWindingOrder, //false
+					GenerateTangentFrames = modelGenerateTangentFrames //false
+				};
+				if (compileMaterialsSeperateSetting) _materialProcessor = new MaterialProcessor();
 
-            if (compileTexturesSetting)
+
+			if (compileTexturesSetting)
             {
 				_contentImporter_Texture = (ContentImporter<TextureContent>)Activator.CreateInstance(Texture_PipeLineAssembly.GetType("Microsoft.Xna.Framework.Content.Pipeline.TextureImporter"));
 					_textureProcessor = new TextureProcessor();
+					//_textureProcessor.GenerateMipmaps = true;//untested
 			}
 
 			base.Content.RootDirectory = "Content";
@@ -307,6 +339,8 @@ namespace DynamicFontGenerator
 			}
 		}
 
+		private bool tangents = true;
+
 		private void CompileModels()
 		{
 			List<string> fileList = Directory.EnumerateFiles(inputDirectorySetting, "*.fbx").ToList();
@@ -329,7 +363,7 @@ namespace DynamicFontGenerator
 
 				ModelContent modelContent = _modelProcessor.Process(input, _dfgContext);//must be before mat
 
-				if (_dfgContext.materialContentCache.Count > 0)
+				if (_dfgContext.materialContentCache.Count > 0)//only normal and tex coords here
                 {
 					int matcount = _dfgContext.materialContentCache.Count;
 					int texcount = _dfgContext.processedTextures.Count;
