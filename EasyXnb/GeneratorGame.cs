@@ -142,7 +142,7 @@ namespace DynamicFontGenerator
 			_compileMethodInfo = contentCompilerType.GetMethod("Compile", BindingFlags.Instance | BindingFlags.NonPublic);//Non-specific //gets compile method
 
 			_graphicsManager = new GraphicsDeviceManager(this);
-
+            _graphicsManager.PreparingDeviceSettings += _graphicsManager_PreparingDeviceSettings;
 			_dfgContext = new DfgContext(this);
 			_dfgImporterContext = new DfgImporterContext();
 
@@ -221,7 +221,12 @@ namespace DynamicFontGenerator
 			base.Content.RootDirectory = "Content";
 		}
 
-		protected override void Initialize()
+        private void _graphicsManager_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
+        {
+			e.GraphicsDeviceInformation.GraphicsProfile = profileSetting;
+		}
+
+        protected override void Initialize()
 		{
 			bool exceptionCaught = false;
 			base.Initialize();
