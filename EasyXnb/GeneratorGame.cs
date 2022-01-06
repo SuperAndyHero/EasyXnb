@@ -91,6 +91,8 @@ namespace DynamicFontGenerator
 		private readonly bool modelSwapWindingOrder;//false
 		private readonly bool modelGenerateTangentFrames;//false
 
+		private readonly bool outputEffectBytecode;//false
+
 		private readonly string effectExtension;
 		private readonly string fontExtension;
 		private readonly string textureExtension;
@@ -122,6 +124,8 @@ namespace DynamicFontGenerator
 			modelScale = float.Parse(ConfigurationManager.AppSettings.Get("ModelScale"));
 			modelSwapWindingOrder = bool.Parse(ConfigurationManager.AppSettings.Get("ModelSwapWindingOrder"));
 			modelGenerateTangentFrames = bool.Parse(ConfigurationManager.AppSettings.Get("ModelGenerateTangentFrames"));
+
+			outputEffectBytecode = bool.Parse(ConfigurationManager.AppSettings.Get("OutputEffectBytecode"));
 
 			effectExtension = ConfigurationManager.AppSettings.Get("EffectExtension");
 			fontExtension = ConfigurationManager.AppSettings.Get("FontExtension");
@@ -280,15 +284,22 @@ namespace DynamicFontGenerator
 				Console.Write("Start loading effect file: {0}", fileName2);
 				EffectContent input = _contentImporter_Effect.Import(item2, _dfgImporterContext);
 				Console.WriteLine(" ..Done!");
-				string text = Path.GetFileNameWithoutExtension(fileName2) + effectExtension;
+				string text = Path.GetFileNameWithoutExtension(fileName2) + (outputEffectBytecode ? ".fxc" : effectExtension);//the fxc extension could be a config option like the other extensions
 				Console.Write("Start compiling effect.");
 				CompiledEffectContent compiledEffectContent = _effectProcessor.Process(input, _dfgContext);
 				Console.WriteLine(".Done!");
 				Console.Write("Start compiling effect content file: {0}", text);
-				using (FileStream fileStream = new FileStream(text, FileMode.Create))
+				if (outputEffectBytecode)
 				{
-					_compileMethodInfo.Invoke(_contentCompiler, new object[7]
+					byte[] bytecode = compiledEffectContent.GetEffectCode();
+					File.WriteAllBytes(outputDirectorySetting + "\\" + text, bytecode);
+				}
+				else
+				{
+					using (FileStream fileStream = new FileStream(text, FileMode.Create))
 					{
+						_compileMethodInfo.Invoke(_contentCompiler, new object[7]
+						{
 						fileStream,
 						compiledEffectContent,
 						TargetPlatform.Windows,
@@ -296,7 +307,8 @@ namespace DynamicFontGenerator
 						compressOutputSetting,
 						inputDirectorySetting,
 						outputDirectorySetting //this param is called referenceRelocationPath. not sure exactly what it does
-					});
+						});
+					}
 				}
 				Console.WriteLine(" ..Done!");
 				Console.WriteLine();
