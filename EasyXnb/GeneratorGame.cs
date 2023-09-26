@@ -83,7 +83,9 @@ namespace DynamicFontGenerator
 		public readonly GraphicsProfile profileSetting; //GraphicsProfile.Reach
 		public readonly bool compressOutputSetting;//false
 		public readonly bool rebuildAllSetting;//true //Default value changed from original xnb generator (this was the source of all bugs and the root of all evil)
-		public static string inputDirectorySetting;// Environment.CurrentDirectory
+        public readonly bool closeImmediatelySetting;//false
+        public readonly bool waitForInputOnErrorSetting;//true
+        public static string inputDirectorySetting;// Environment.CurrentDirectory
 		public static string intermedDirectorySetting;// Environment.CurrentDirectory
 		public static string outputDirectorySetting;// Environment.CurrentDirectory
 
@@ -121,7 +123,10 @@ namespace DynamicFontGenerator
 
 			rebuildAllSetting = bool.Parse(ConfigurationManager.AppSettings.Get("RebuildAll"));
 
-			modelScale = float.Parse(ConfigurationManager.AppSettings.Get("ModelScale"));
+			closeImmediatelySetting = bool.Parse(ConfigurationManager.AppSettings.Get("CloseImmediately"));
+			waitForInputOnErrorSetting = bool.Parse(ConfigurationManager.AppSettings.Get("WaitForInputOnError"));
+
+            modelScale = float.Parse(ConfigurationManager.AppSettings.Get("ModelScale"));
 			modelSwapWindingOrder = bool.Parse(ConfigurationManager.AppSettings.Get("ModelSwapWindingOrder"));
 			modelGenerateTangentFrames = bool.Parse(ConfigurationManager.AppSettings.Get("ModelGenerateTangentFrames"));
 
@@ -247,14 +252,21 @@ namespace DynamicFontGenerator
                 Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 Console.WriteLine((e.InnerException ?? e).Message);
-                Console.ReadLine();
-                Environment.Exit(0);
+				if (waitForInputOnErrorSetting)
+				{
+                    Console.ReadLine();
+                    Environment.Exit(0);
+                }
             }
-            if (!exceptionCaught)
+
+            if (!exceptionCaught || !waitForInputOnErrorSetting)
             {
 				Console.ForegroundColor = ConsoleColor.Green;
 				Console.WriteLine("Done! (Closing in 10 seconds)");
-				Thread.Sleep(10000);
+				if (!closeImmediatelySetting)
+				{
+					Thread.Sleep(10000);
+				}
 				Environment.Exit(0);
 			}
 		}
