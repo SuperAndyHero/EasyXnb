@@ -308,7 +308,7 @@ namespace DynamicFontGenerator
 				}
 				else
 				{
-					using (FileStream fileStream = new FileStream(text, FileMode.Create))
+					using (FileStream fileStream = new FileStream(outputDirectorySetting + "\\" + text, FileMode.Create))
 					{
 						_compileMethodInfo.Invoke(_contentCompiler, new object[7]
 						{
@@ -350,7 +350,7 @@ namespace DynamicFontGenerator
 				TextureContent textureContent = _textureProcessor.Process(input, _dfgContext);
 				Console.WriteLine(".Done!");
 				Console.Write("Start compiling texture content file: {0}", text);
-				using (FileStream fileStream = new FileStream(text, FileMode.Create))
+				using (FileStream fileStream = new FileStream(outputDirectorySetting + "\\" + text, FileMode.Create))
 				{
 					_compileMethodInfo.Invoke(_contentCompiler, new object[7]
 					{
@@ -454,7 +454,7 @@ namespace DynamicFontGenerator
 
                 Console.WriteLine(".Done!");
 				Console.Write("Start compiling model content file: {0}", outputFile);
-				using (FileStream fileStream = new FileStream(outputFile, FileMode.Create))
+				using (FileStream fileStream = new FileStream(outputDirectorySetting + "\\" + outputFile, FileMode.Create))
 				{
 					_compileMethodInfo.Invoke(_contentCompiler, new object[7]
 					{
@@ -496,7 +496,7 @@ namespace DynamicFontGenerator
 				CompiledEffectContent compiledEffectContent = _effectProcessor.Process(input, _dfgContext);
 				Console.WriteLine(".Done!");
 				Console.Write("Start compiling font content file: {0}", text);
-				using (FileStream fileStream = new FileStream(text, FileMode.Create))
+				using (FileStream fileStream = new FileStream(outputDirectorySetting + "\\" + text, FileMode.Create))
 				{
 					_compileMethodInfo.Invoke(_contentCompiler, new object[7]
 					{
