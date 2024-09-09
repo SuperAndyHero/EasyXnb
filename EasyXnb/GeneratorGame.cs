@@ -12,6 +12,7 @@ using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler;
 using Microsoft.Xna.Framework.Graphics;
 using System.Configuration;
 using System.Collections.Specialized;
+using System.Globalization;
 
 //untested:
 //texture loading in-game
@@ -126,7 +127,7 @@ namespace DynamicFontGenerator
 			closeImmediatelySetting = bool.Parse(ConfigurationManager.AppSettings.Get("CloseImmediately"));
 			waitForInputOnErrorSetting = bool.Parse(ConfigurationManager.AppSettings.Get("WaitForInputOnError"));
 
-            modelScale = float.Parse(ConfigurationManager.AppSettings.Get("ModelScale"));
+            modelScale = float.Parse(ConfigurationManager.AppSettings.Get("ModelScale"), CultureInfo.InvariantCulture);
 			modelSwapWindingOrder = bool.Parse(ConfigurationManager.AppSettings.Get("ModelSwapWindingOrder"));
 			modelGenerateTangentFrames = bool.Parse(ConfigurationManager.AppSettings.Get("ModelGenerateTangentFrames"));
 
