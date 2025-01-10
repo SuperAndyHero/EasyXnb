@@ -18,19 +18,23 @@ namespace xnbcompiler.EasyXnb
         public override void LogImportantMessage(string message, params object[] messageArgs) 
         {
             Console.WriteLine("");
+            ConsoleColor originalColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Log Important: " + message, messageArgs);
+            Console.ForegroundColor = originalColor;
         }
 
         public override void LogWarning(string helpLink, ContentIdentity contentIdentity, string message, params object[] messageArgs) 
         {
             Console.WriteLine("");
+            ConsoleColor originalColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.DarkYellow;
             Console.WriteLine("Warning: " + message + ", at: ", messageArgs);
             Console.WriteLine("Warning type: " + helpLink);
             Console.WriteLine("Source file name: " + contentIdentity.SourceFilename);
             Console.WriteLine("Source tool: " + contentIdentity.SourceTool);
             Console.WriteLine("Fragment identifier: " + contentIdentity.FragmentIdentifier);
+            Console.ForegroundColor = originalColor;
         }
     }
 }
