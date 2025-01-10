@@ -262,8 +262,11 @@ namespace DynamicFontGenerator
 
             if (!exceptionCaught || !waitForInputOnErrorSetting)
             {
+				ConsoleColor originalColor = Console.ForegroundColor;
 				Console.ForegroundColor = ConsoleColor.Green;
 				Console.WriteLine("Done! (Closing in 10 seconds)");
+				Console.ForegroundColor = originalColor;
+				
 				if (!closeImmediatelySetting)
 				{
 					Thread.Sleep(10000);
